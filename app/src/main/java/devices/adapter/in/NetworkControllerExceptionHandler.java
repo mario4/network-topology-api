@@ -1,20 +1,18 @@
 package devices.adapter.in;
 
+import devices.model.DevicesNetwork;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import devices.adapter.in.NetworkController.InvalidDeviceRegistrationParameters;
-import devices.api.model.ErrorResponse;
-import devices.network.NetworkDeployment.CyclicUplinkReferenceException;
-import devices.network.NetworkDeployment.DuplicateDeviceException;
 
 @ControllerAdvice
 public class NetworkControllerExceptionHandler {
 
-    @ExceptionHandler(DuplicateDeviceException.class)
-    public ResponseEntity<ErrorResponse> handleDuplicateDeviceException(DuplicateDeviceException ex) {
+    @ExceptionHandler(DevicesNetwork.DuplicateDeviceException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateDeviceException(DevicesNetwork.DuplicateDeviceException ex) {
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.CONFLICT.value(),
                 "Bad Request",
@@ -22,8 +20,8 @@ public class NetworkControllerExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
 
-    @ExceptionHandler(CyclicUplinkReferenceException.class)
-    public ResponseEntity<ErrorResponse> handleCyclicUplinkReferenceException(CyclicUplinkReferenceException ex) {
+    @ExceptionHandler(DevicesNetwork.CyclicUplinkReferenceException.class)
+    public ResponseEntity<ErrorResponse> handleCyclicUplinkReferenceException(DevicesNetwork.CyclicUplinkReferenceException ex) {
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
                 "Bad Request",

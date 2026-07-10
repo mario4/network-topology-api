@@ -1,4 +1,4 @@
-package devices.api.model;
+package devices.adapter.in;
 
 public class ErrorResponse {
 

@@ -1,4 +1,4 @@
-package devices.api.model;
+package devices.adapter.in;
 
 import devices.model.DeviceType;
 
@@ -45,6 +45,4 @@ public class DeviceEntryResponse {
             return false;
         return true;
     }
-
-    
 }

@@ -1,7 +1,5 @@
 package devices.model;
 
-import devices.network.NetworkDeployment;
-
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Optional;
@@ -18,11 +16,11 @@ public class DevicesNetwork {
         Device device = getRegisteredDevice(newDevice.getMacAddress().value());
 
         if (device != null) {
-            throw new NetworkDeployment.DuplicateDeviceException();
+            throw new DevicesNetwork.DuplicateDeviceException();
         }
 
         if (newDevice.getMacAddress().equals(newDevice.getUplinkMacAddress()))
-            throw new NetworkDeployment.CyclicUplinkReferenceException();
+            throw new DevicesNetwork.CyclicUplinkReferenceException();
 
         deployDeviceToNetwork(newDevice);
     }
@@ -51,7 +49,7 @@ public class DevicesNetwork {
                 networkRoot.getConnectedDevices().add(device);
             } else {
                 if (createsCyclicReference(device, uplinkDevice)) {
-                    throw new NetworkDeployment.CyclicUplinkReferenceException();
+                    throw new DevicesNetwork.CyclicUplinkReferenceException();
                 }
                 uplinkDevice.getConnectedDevices().add(device);
             }

@@ -3,6 +3,7 @@ package devices.adapter.in;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import devices.model.DevicesNetwork;
 import devices.model.MacAddress;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,15 +12,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import devices.api.model.DeviceEntryResponse;
-import devices.api.model.RegisterDeviceRequest;
 import devices.model.Device;
-import devices.network.NetworkDeployment;
 
 @RestController
 @RequestMapping("/api/network")
 public class NetworkController {
-    private NetworkDeployment networkDeployment = new NetworkDeployment();;
+    private DevicesNetwork networkDeployment = new DevicesNetwork();;
 
     @GetMapping("/topology")
     public Device getNetworkTopology() {

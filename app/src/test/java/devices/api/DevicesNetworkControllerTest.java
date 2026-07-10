@@ -17,8 +17,8 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
-import devices.api.model.DeviceEntryResponse;
-import devices.api.model.RegisterDeviceRequest;
+import devices.adapter.in.DeviceEntryResponse;
+import devices.adapter.in.RegisterDeviceRequest;
 import devices.model.Device;
 import devices.model.DeviceType;
 
