@@ -18,6 +18,9 @@ public class Device implements Comparable<Device>, Serializable{
 
     private List<Device> connectedDevices = new ArrayList<>();
 
+    public Device() {
+    }
+
     public Device(String macAddress, DeviceType type, String uplinkMacAddress) {
         this.macAddress = new MacAddress(macAddress);
         this.type = type;
