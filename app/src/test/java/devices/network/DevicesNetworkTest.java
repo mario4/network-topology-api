@@ -5,12 +5,12 @@ package devices.network;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import devices.model.DevicesNetwork;
+import devices.domain.DevicesNetwork;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import devices.model.Device;
-import devices.model.DeviceType;
+import devices.domain.Device;
+import devices.domain.DeviceType;
 
 class DevicesNetworkTest {
     private DevicesNetwork network = new DevicesNetwork();

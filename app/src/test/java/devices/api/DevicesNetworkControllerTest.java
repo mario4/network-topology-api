@@ -3,6 +3,7 @@ package devices.api;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import devices.adapter.in.web.dto.DevicesNetworkTopologyResponse;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +18,9 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
-import devices.adapter.in.DeviceEntryResponse;
-import devices.adapter.in.RegisterDeviceRequest;
-import devices.model.Device;
-import devices.model.DeviceType;
+import devices.adapter.in.web.dto.DeviceEntryResponse;
+import devices.adapter.in.web.dto.RegisterDeviceRequest;
+import devices.domain.DeviceType;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class DevicesNetworkControllerTest {
@@ -92,7 +92,7 @@ public class DevicesNetworkControllerTest {
 
         String urlGetDevice = "http://localhost:" + port + "/api/network/topology";
 
-        Device response = restTemplate.getForObject(urlGetDevice, Device.class);
+        DevicesNetworkTopologyResponse response = restTemplate.getForObject(urlGetDevice, DevicesNetworkTopologyResponse.class);
 
         Assertions.assertThat(response.getConnectedDevices().size()).isEqualTo(1);
         Assertions.assertThat(response.getConnectedDevices().stream().findFirst().get().getConnectedDevices().size())
@@ -113,7 +113,7 @@ public class DevicesNetworkControllerTest {
 
         String urlGetDevice = "http://localhost:" + port + "/api/network/devices/00:03/topology";
 
-        Device response = restTemplate.getForObject(urlGetDevice, Device.class);
+        DevicesNetworkTopologyResponse response = restTemplate.getForObject(urlGetDevice, DevicesNetworkTopologyResponse.class);
 
         Assertions.assertThat(response.getConnectedDevices().size())
                 .isEqualTo(2);

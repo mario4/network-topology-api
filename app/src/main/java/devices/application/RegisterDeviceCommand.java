@@ -1,11 +1,6 @@
 package devices.application;
 
-import devices.model.DeviceType;
-import devices.model.MacAddress;
+import devices.domain.DeviceType;
 
-public class RegisterDeviceCommand {
-
-    private DeviceType deviceType;
-
-    private MacAddress macAddress;
+public record RegisterDeviceCommand(String macAddress, DeviceType type, String uplinkMacAddress) {
 }

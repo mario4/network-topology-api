@@ -1,4 +1,4 @@
-package devices.model;
+package devices.domain;
 
 import java.util.Iterator;
 import java.util.LinkedHashSet;

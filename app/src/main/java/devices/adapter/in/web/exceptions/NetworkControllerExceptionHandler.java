@@ -1,12 +1,13 @@
-package devices.adapter.in;
+package devices.adapter.in.web.exceptions;
 
-import devices.model.DevicesNetwork;
+import devices.adapter.in.web.dto.ErrorResponse;
+import devices.domain.DevicesNetwork;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import devices.adapter.in.NetworkController.InvalidDeviceRegistrationParameters;
+import devices.adapter.in.web.NetworkController.InvalidDeviceRegistrationParameters;
 
 @ControllerAdvice
 public class NetworkControllerExceptionHandler {
@@ -36,5 +37,14 @@ public class NetworkControllerExceptionHandler {
                 "Bad Request",
                 ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(DeviceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleDeviceNotFound(DeviceNotFoundException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                "Device not found",
+                ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 }

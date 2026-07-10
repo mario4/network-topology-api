@@ -1,6 +1,6 @@
 package devices.port.out;
 
-import devices.model.DevicesNetwork;
+import devices.domain.DevicesNetwork;
 
 public interface DevicesNetworkRepository {
 

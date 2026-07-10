@@ -1,4 +1,4 @@
-package devices.model;
+package devices.domain;
 
 public record MacAddress(String value) {
 

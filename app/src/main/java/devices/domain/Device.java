@@ -1,4 +1,4 @@
-package devices.model;
+package devices.domain;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -10,10 +10,8 @@ public class Device implements Comparable<Device>, Serializable{
 
     private MacAddress macAddress;
 
-    @JsonIgnore
     private DeviceType type;
 
-    @JsonIgnore
     private MacAddress uplinkMacAddress;
 
     private List<Device> connectedDevices = new ArrayList<>();
