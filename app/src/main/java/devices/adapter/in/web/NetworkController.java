@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import devices.domain.Device;
 
 @RestController
-@RequestMapping("/api/network")
+@RequestMapping("/api/network/devices")
 public class NetworkController {
 
     private DevicesNetworkRepository devicesNetworkRepository = new InMemoryDevicesNetworkRepository();
@@ -39,7 +39,7 @@ public class NetworkController {
         return DevicesNetworkTopologyMapper.map(devicesNetworkQueryUseCase.getTopology());
     }
 
-    @PostMapping("/devices/register")
+    @PostMapping("/")
     public void registerDevice(@RequestBody RegisterDeviceRequest request) {
 
         validateRegisterDeviceRequest(request);
@@ -48,7 +48,7 @@ public class NetworkController {
                 .execute(new RegisterDeviceCommand(request.getMacAddress(), request.getType(), request.getUplinkMacAddress()));
     }
 
-    @GetMapping("/devices/{macAddress}")
+    @GetMapping("/{macAddress}")
     public DeviceEntryResponse getRegisteredDevice(@PathVariable String macAddress) {
         if(macAddress == null)
             throw new RuntimeException("Invalid mac address");
@@ -60,7 +60,7 @@ public class NetworkController {
         return new DeviceEntryResponse(Optional.ofNullable(device.getMacAddress().value()).orElse(""), device.getType());
     }
 
-    @GetMapping("/devices/{macAddress}/topology")
+    @GetMapping("/{macAddress}/topology")
     public DevicesNetworkTopologyResponse getRegisteredDeviceTopology(@PathVariable String macAddress) {
         Device device = devicesNetworkQueryUseCase.getRegisteredDevice(macAddress);
         if(device == null){
@@ -69,7 +69,7 @@ public class NetworkController {
         return DevicesNetworkTopologyMapper.map(device);
     }
 
-    @GetMapping("/devices/list")
+    @GetMapping("/list")
     public List<DeviceEntryResponse> listRegisteredDevices() {
         return devicesNetworkQueryUseCase.getRegisteredDevices().stream()
                 .map(d -> new DeviceEntryResponse(d.getMacAddress().value(), d.getType())).collect(Collectors.toList());
