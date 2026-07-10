@@ -58,11 +58,13 @@ class DevicesNetworkTest {
     @Test
     void can_Add_Connected_Devices_In_Network() {
         Device switchOne = aSwitch("00:01", null);
+        Device switchthree = aSwitch("00:09", null);
+
         Device gateway = aGateway("00:02", "00:01");
         Device switchTwo = aSwitch("00:03", "00:01");
         Device accessPoint = anAccesspoint("00:04", "00:01");
 
-        registerDevices(switchOne, gateway, switchTwo, accessPoint);
+        registerDevices(switchOne,switchthree, gateway, switchTwo, accessPoint);
 
         Assertions.assertThatIterable(switchOne.getConnectedDevices())
                 .contains(gateway, switchTwo, accessPoint);
@@ -108,6 +110,18 @@ class DevicesNetworkTest {
 
         Assertions.assertThat(network.getRegisteredDevices()).isEmpty();
         Assertions.assertThat(network.getTopology().getConnectedDevices()).isEmpty();
+    }
+
+    @Test
+    void shouldRegisterMultipleDevicesWithoutUplinkConnection(){
+        Device switchOne = aSwitch("00:01", null);
+        Device gateway = aGateway("00:02", null);
+
+        network.registerDevice(switchOne);
+        network.registerDevice(gateway);
+
+        Assertions.assertThatIterable(network.getTopology().getConnectedDevices())
+                .contains(gateway, switchOne);
     }
 
     private void registerDevices(Device... devices) {

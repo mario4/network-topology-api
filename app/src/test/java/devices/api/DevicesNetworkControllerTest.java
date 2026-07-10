@@ -33,7 +33,7 @@ public class DevicesNetworkControllerTest {
 
     @Test
     void canRegisterDevice() {
-        String url = "http://localhost:" + port + "/api/network/devices/register";
+        String url = "http://localhost:" + port + "/api/network/devices/";
         String urlGetDevice = "http://localhost:" + port + "/api/network/devices/00:01";
 
         sendRegisterRequest(url, "00:01", DeviceType.SWITCH, "");
@@ -45,7 +45,7 @@ public class DevicesNetworkControllerTest {
 
     @Test
     void can_List_Registered_Devices() {
-        String url = "http://localhost:" + port + "/api/network/devices/register";
+        String url = "http://localhost:" + port + "/api/network/devices/";
         String urlListDevice = "http://localhost:" + port + "/api/network/devices/list";
 
         sendRegisterRequest(url, "00:01", DeviceType.SWITCH, "");
@@ -75,7 +75,7 @@ public class DevicesNetworkControllerTest {
 
     @Test
     void should_Validate_Device_Registration_Parameters() {
-        String url = "http://localhost:" + port + "/api/network/devices/register";
+        String url = "http://localhost:" + port + "/api/network/devices/";
 
         Assertions.assertThat(sendRegisterRequest(url, null, null, "").getStatusCode())
                 .isEqualTo(HttpStatusCode.valueOf(400));
@@ -83,14 +83,14 @@ public class DevicesNetworkControllerTest {
 
     @Test
     void can_Return_Network_Topology() {
-        String url = "http://localhost:" + port + "/api/network/devices/register";
+        String url = "http://localhost:" + port + "/api/network/devices/";
 
         sendRegisterRequest(url, "00:01", DeviceType.SWITCH, "");
         sendRegisterRequest(url, "00:02", DeviceType.GATEWAY, "00:01");
         sendRegisterRequest(url, "00:03", DeviceType.GATEWAY, "00:01");
         sendRegisterRequest(url, "00:04", DeviceType.GATEWAY, "00:01");
 
-        String urlGetDevice = "http://localhost:" + port + "/api/network/topology";
+        String urlGetDevice = "http://localhost:" + port + "/api/network/devices/topology";
 
         DevicesNetworkTopologyResponse response = restTemplate.getForObject(urlGetDevice, DevicesNetworkTopologyResponse.class);
 
@@ -102,7 +102,7 @@ public class DevicesNetworkControllerTest {
 
     @Test
     void can_Return_Network_Topology_Starting_From_Internal_Device() {
-        String url = "http://localhost:" + port + "/api/network/devices/register";
+        String url = "http://localhost:" + port + "/api/network/devices/";
 
         sendRegisterRequest(url, "00:01", DeviceType.SWITCH, "");
         sendRegisterRequest(url, "00:02", DeviceType.GATEWAY, "00:01");
