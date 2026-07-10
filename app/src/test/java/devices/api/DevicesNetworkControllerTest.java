@@ -23,7 +23,7 @@ import devices.model.Device;
 import devices.model.DeviceType;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class NetworkControllerTest {
+public class DevicesNetworkControllerTest {
 
     @LocalServerPort
     private int port;

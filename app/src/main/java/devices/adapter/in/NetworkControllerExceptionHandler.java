@@ -1,11 +1,11 @@
-package devices.api;
+package devices.adapter.in;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import devices.api.NetworkController.InvalidDeviceRegistrationParameters;
+import devices.adapter.in.NetworkController.InvalidDeviceRegistrationParameters;
 import devices.api.model.ErrorResponse;
 import devices.network.NetworkDeployment.CyclicUplinkReferenceException;
 import devices.network.NetworkDeployment.DuplicateDeviceException;

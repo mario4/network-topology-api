@@ -5,6 +5,7 @@ package devices.network;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import devices.model.DevicesNetwork;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -13,8 +14,8 @@ import devices.model.DeviceType;
 import devices.network.NetworkDeployment.CyclicUplinkReferenceException;
 import devices.network.NetworkDeployment.DuplicateDeviceException;
 
-class NetworkDeploymentTest {
-    private NetworkDeployment network = new NetworkDeployment();
+class DevicesNetworkTest {
+    private DevicesNetwork network = new DevicesNetwork();
 
     @Test
     void should_Not_Accept_Duplicate_Devices() {

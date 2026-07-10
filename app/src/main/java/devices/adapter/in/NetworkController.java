@@ -1,8 +1,9 @@
-package devices.api;
+package devices.adapter.in;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+import devices.model.MacAddress;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,7 +32,7 @@ public class NetworkController {
         validateRegisterDeviceRequest(request);
 
         networkDeployment
-                .registerDevice(new Device(request.getMacAddress(), request.getType(), request.getUplinkMacAddress()));
+                .registerDevice(new Device(new MacAddress(request.getMacAddress()), request.getType(), new MacAddress(request.getUplinkMacAddress())));
     }
 
     @GetMapping("/devices/{macAddress}")
@@ -40,7 +41,7 @@ public class NetworkController {
             throw new RuntimeException("Invalid mac address");
 
         Device device = networkDeployment.getRegisteredDevice(macAddress);
-        return new DeviceEntryResponse(device.getMacAddress(), device.getType());
+        return new DeviceEntryResponse(device.getMacAddress().value(), device.getType());
     }
 
     @GetMapping("/devices/{macAddress}/topology")
@@ -52,7 +53,7 @@ public class NetworkController {
     @GetMapping("/devices/list")
     public List<DeviceEntryResponse> listRegisteredDevices() {
         return networkDeployment.getRegisteredDevices().stream()
-                .map(d -> new DeviceEntryResponse(d.getMacAddress(), d.getType())).collect(Collectors.toList());
+                .map(d -> new DeviceEntryResponse(d.getMacAddress().value(), d.getType())).collect(Collectors.toList());
     }
 
     private void validateRegisterDeviceRequest(RegisterDeviceRequest request) {

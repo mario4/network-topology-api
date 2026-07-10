@@ -1,4 +1,6 @@
-package devices.network;
+package devices.model;
+
+import devices.network.NetworkDeployment;
 
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -6,30 +8,27 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import devices.model.Device;
+public class DevicesNetwork {
 
-public class NetworkDeployment {
-
-    // in memory persistence in service logic class
     private Set<Device> registeredDevices = new LinkedHashSet<>();
 
     private Device networkRoot = new Device("root", null, null);
 
     public void registerDevice(Device newDevice) {
         Device device = getRegisteredDevice(newDevice.getMacAddress().value());
-        
+
         if (device != null) {
-            throw new DuplicateDeviceException();
+            throw new NetworkDeployment.DuplicateDeviceException();
         }
-        
+
         if (newDevice.getMacAddress().equals(newDevice.getUplinkMacAddress()))
-            throw new CyclicUplinkReferenceException();
+            throw new NetworkDeployment.CyclicUplinkReferenceException();
 
         deployDeviceToNetwork(newDevice);
     }
 
     public Device getRegisteredDevice(String string) {
-        return registeredDevices.stream().filter(d -> d.getMacAddress().equals(string))
+        return registeredDevices.stream().filter(d -> d.getMacAddress().value().equals(string))
                 .findFirst()
                 .orElse(null);
     }
@@ -52,7 +51,7 @@ public class NetworkDeployment {
                 networkRoot.getConnectedDevices().add(device);
             } else {
                 if (createsCyclicReference(device, uplinkDevice)) {
-                    throw new CyclicUplinkReferenceException();
+                    throw new NetworkDeployment.CyclicUplinkReferenceException();
                 }
                 uplinkDevice.getConnectedDevices().add(device);
             }
@@ -68,7 +67,7 @@ public class NetworkDeployment {
     }
 
     private boolean isUplinkEmpty(Device device) {
-        return device.getUplinkMacAddress() == null || device.getUplinkMacAddress().value().isEmpty();
+        return device.getUplinkMacAddress().value() == null || device.getUplinkMacAddress().value().isEmpty();
     }
 
     private void resolveOutOfOrderUplinkConnections(Device device) {
