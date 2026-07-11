@@ -1,4 +1,4 @@
-package devices.model;
+package devices.domain;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -8,17 +8,23 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class Device implements Comparable<Device>, Serializable{
 
-    private String macAddress;
+    private MacAddress macAddress;
 
-    @JsonIgnore
     private DeviceType type;
 
-    @JsonIgnore
-    private String uplinkMacAddress;
+    private MacAddress uplinkMacAddress;
 
     private List<Device> connectedDevices = new ArrayList<>();
 
+    public Device() {
+    }
+
     public Device(String macAddress, DeviceType type, String uplinkMacAddress) {
+        this.macAddress = new MacAddress(macAddress);
+        this.type = type;
+        this.uplinkMacAddress = new MacAddress(uplinkMacAddress);
+    }
+    public Device(MacAddress macAddress, DeviceType type, MacAddress uplinkMacAddress) {
         this.macAddress = macAddress;
         this.type = type;
         this.uplinkMacAddress = uplinkMacAddress;
@@ -59,7 +65,7 @@ public class Device implements Comparable<Device>, Serializable{
         return "Device [macAddress=" + macAddress + ", type=" + type + "]";
     }
 
-    public String getMacAddress() {
+    public MacAddress getMacAddress() {
         return macAddress;
     }
 
@@ -67,7 +73,7 @@ public class Device implements Comparable<Device>, Serializable{
         return type;
     }
 
-    public String getUplinkMacAddress() {
+    public MacAddress getUplinkMacAddress() {
         return uplinkMacAddress;
     }
 

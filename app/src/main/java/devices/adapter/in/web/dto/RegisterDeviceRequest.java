@@ -1,6 +1,6 @@
-package devices.api.model;
+package devices.adapter.in.web.dto;
 
-import devices.model.DeviceType;
+import devices.domain.DeviceType;
 
 public class RegisterDeviceRequest {
 

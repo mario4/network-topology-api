@@ -5,16 +5,15 @@ package devices.network;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import devices.domain.DevicesNetwork;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import devices.model.Device;
-import devices.model.DeviceType;
-import devices.network.NetworkDeployment.CyclicUplinkReferenceException;
-import devices.network.NetworkDeployment.DuplicateDeviceException;
+import devices.domain.Device;
+import devices.domain.DeviceType;
 
-class NetworkDeploymentTest {
-    private NetworkDeployment network = new NetworkDeployment();
+class DevicesNetworkTest {
+    private DevicesNetwork network = new DevicesNetwork();
 
     @Test
     void should_Not_Accept_Duplicate_Devices() {
@@ -27,7 +26,7 @@ class NetworkDeploymentTest {
         network.registerDevice(switchDevice);
 
         Assertions.assertThatThrownBy(() -> network.registerDevice(gateway))
-                .isInstanceOf(DuplicateDeviceException.class);
+                .isInstanceOf(DevicesNetwork.DuplicateDeviceException.class);
         Assertions.assertThatIterable(network.getRegisteredDevices())
                 .containsExactly(switchDevice);
     }
@@ -59,11 +58,13 @@ class NetworkDeploymentTest {
     @Test
     void can_Add_Connected_Devices_In_Network() {
         Device switchOne = aSwitch("00:01", null);
+        Device switchthree = aSwitch("00:09", null);
+
         Device gateway = aGateway("00:02", "00:01");
         Device switchTwo = aSwitch("00:03", "00:01");
         Device accessPoint = anAccesspoint("00:04", "00:01");
 
-        registerDevices(switchOne, gateway, switchTwo, accessPoint);
+        registerDevices(switchOne,switchthree, gateway, switchTwo, accessPoint);
 
         Assertions.assertThatIterable(switchOne.getConnectedDevices())
                 .contains(gateway, switchTwo, accessPoint);
@@ -96,12 +97,12 @@ class NetworkDeploymentTest {
         network.registerDevice(new Device("00:03", DeviceType.ACCESS_POINT, "00:04"));
 
         Assertions.assertThatThrownBy(() -> network.registerDevice(new Device("00:04", DeviceType.GATEWAY, "00:03")))
-                .isInstanceOf(CyclicUplinkReferenceException.class);
+                .isInstanceOf(DevicesNetwork.CyclicUplinkReferenceException.class);
 
         Assertions.assertThat(network.getRegisteredDevice("00:04")).isNull();
         
         Assertions.assertThatThrownBy(() -> network.registerDevice(aGateway("00", "00")))
-                .isInstanceOf(CyclicUplinkReferenceException.class);
+                .isInstanceOf(DevicesNetwork.CyclicUplinkReferenceException.class);
     }
 
     @Test
@@ -109,6 +110,18 @@ class NetworkDeploymentTest {
 
         Assertions.assertThat(network.getRegisteredDevices()).isEmpty();
         Assertions.assertThat(network.getTopology().getConnectedDevices()).isEmpty();
+    }
+
+    @Test
+    void shouldRegisterMultipleDevicesWithoutUplinkConnection(){
+        Device switchOne = aSwitch("00:01", null);
+        Device gateway = aGateway("00:02", null);
+
+        network.registerDevice(switchOne);
+        network.registerDevice(gateway);
+
+        Assertions.assertThatIterable(network.getTopology().getConnectedDevices())
+                .contains(gateway, switchOne);
     }
 
     private void registerDevices(Device... devices) {
