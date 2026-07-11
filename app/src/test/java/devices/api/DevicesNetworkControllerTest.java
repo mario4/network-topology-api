@@ -4,7 +4,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import devices.adapter.in.web.dto.DevicesNetworkTopologyResponse;
+import devices.application.RegisterDeviceUseCase;
+import devices.port.out.DevicesNetworkRepository;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,6 +33,14 @@ public class DevicesNetworkControllerTest {
 
     @Autowired
     private TestRestTemplate restTemplate;
+
+    @Autowired
+    private DevicesNetworkRepository devicesNetworkRepository;
+
+    @BeforeEach
+    void reset() {
+        devicesNetworkRepository.clear();
+    }
 
     @Test
     void canRegisterDevice() {

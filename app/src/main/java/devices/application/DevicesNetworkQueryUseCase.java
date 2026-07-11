@@ -2,13 +2,17 @@ package devices.application;
 
 import devices.domain.Device;
 import devices.port.out.DevicesNetworkRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Service
 public class DevicesNetworkQueryUseCase {
 
+    @Autowired
     private DevicesNetworkRepository devicesNetworkRepository;
 
     public DevicesNetworkQueryUseCase() {
@@ -31,5 +35,4 @@ public class DevicesNetworkQueryUseCase {
     public Device getTopology() {
         return devicesNetworkRepository.load().getTopology();
     }
-
 }

@@ -15,6 +15,7 @@ import devices.application.DevicesNetworkQueryUseCase;
 import devices.application.RegisterDeviceCommand;
 import devices.application.RegisterDeviceUseCase;
 import devices.port.out.DevicesNetworkRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,11 +29,11 @@ import devices.domain.Device;
 @RequestMapping("/api/network/devices")
 public class NetworkController {
 
-    private DevicesNetworkRepository devicesNetworkRepository = new InMemoryDevicesNetworkRepository();
+    @Autowired
+    private RegisterDeviceUseCase registerDeviceUseCase;
 
-    private RegisterDeviceUseCase registerDeviceUseCase = new RegisterDeviceUseCase(devicesNetworkRepository);;
-
-    private DevicesNetworkQueryUseCase devicesNetworkQueryUseCase = new DevicesNetworkQueryUseCase(devicesNetworkRepository);
+    @Autowired
+    private DevicesNetworkQueryUseCase devicesNetworkQueryUseCase;
 
     @GetMapping("/topology")
     public DevicesNetworkTopologyResponse getNetworkTopology() {

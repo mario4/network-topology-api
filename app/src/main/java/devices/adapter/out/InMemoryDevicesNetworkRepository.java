@@ -2,7 +2,9 @@ package devices.adapter.out;
 
 import devices.domain.DevicesNetwork;
 import devices.port.out.DevicesNetworkRepository;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public class InMemoryDevicesNetworkRepository implements DevicesNetworkRepository {
 
     private DevicesNetwork devicesNetwork;
@@ -22,5 +24,10 @@ public class InMemoryDevicesNetworkRepository implements DevicesNetworkRepositor
 
     @Override
     public void save(DevicesNetwork devicesNetwork) {
+    }
+
+    @Override
+    public void clear() {
+        devicesNetwork = new DevicesNetwork();
     }
 }

@@ -4,7 +4,7 @@ import devices.domain.DevicesNetwork;
 
 public interface DevicesNetworkRepository {
 
-    public DevicesNetwork load();
-
-    public void save(DevicesNetwork devicesNetwork);
+    DevicesNetwork load();
+    void save(DevicesNetwork devicesNetwork);
+    void clear();
 }
