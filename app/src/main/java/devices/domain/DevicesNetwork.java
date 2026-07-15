@@ -1,38 +1,43 @@
 package devices.domain;
 
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Optional;
-import java.util.Set;
+import devices.domain.exceptions.CyclicUplinkReferenceException;
+import devices.domain.exceptions.DuplicateDeviceException;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
 
 public class DevicesNetwork {
 
-    private Set<Device> registeredDevices = new LinkedHashSet<>();
+    private final Set<Device> registeredDevices = Collections.synchronizedSet(new LinkedHashSet<>());
 
-    private Device networkRoot = new Device("root", null, null);
+    private final Device networkRoot = new Device("root", null, null);
 
     public void registerDevice(Device newDevice) {
         Device device = getRegisteredDevice(newDevice.getMacAddress().value());
 
         if (device != null) {
-            throw new DevicesNetwork.DuplicateDeviceException();
+            throw new DuplicateDeviceException();
         }
 
         if (newDevice.getMacAddress().equals(newDevice.getUplinkMacAddress()))
-            throw new DevicesNetwork.CyclicUplinkReferenceException();
+            throw new CyclicUplinkReferenceException();
 
         deployDeviceToNetwork(newDevice);
     }
 
     public Device getRegisteredDevice(String string) {
-        return registeredDevices.stream().filter(d -> d.getMacAddress().value().equals(string))
-                .findFirst()
-                .orElse(null);
+        synchronized (registeredDevices) {
+           return registeredDevices.stream().filter(d -> d.getMacAddress().value().equals(string))
+                    .findFirst()
+                    .orElse(null);
+        }
     }
 
     public Set<Device> getRegisteredDevices() {
-        return registeredDevices.stream().sorted().collect(Collectors.toCollection(LinkedHashSet::new));
+        synchronized (registeredDevices) {
+            return registeredDevices.stream().sorted().collect(Collectors.toCollection(LinkedHashSet::new));
+        }
     }
 
     public Device getTopology() {
@@ -49,7 +54,7 @@ public class DevicesNetwork {
                 networkRoot.getConnectedDevices().add(device);
             } else {
                 if (createsCyclicReference(device, uplinkDevice)) {
-                    throw new DevicesNetwork.CyclicUplinkReferenceException();
+                    throw new CyclicUplinkReferenceException();
                 }
                 uplinkDevice.getConnectedDevices().add(device);
             }
@@ -69,31 +74,19 @@ public class DevicesNetwork {
     }
 
     private void resolveOutOfOrderUplinkConnections(Device device) {
+        Device toRemove = null;
         for (Iterator<Device> i = networkRoot.getConnectedDevices().iterator(); i.hasNext();) {
             Device hangingDevice = i.next();
-
             if (isNoLongerHangingDevice(device.getMacAddress().value(), hangingDevice.getUplinkMacAddress().value())) {
                 device.getConnectedDevices().add(hangingDevice);
-                i.remove();
+                toRemove=hangingDevice;
             }
         }
+        if (toRemove!=null)
+            networkRoot.getConnectedDevices().remove(toRemove);
     }
 
     private boolean isNoLongerHangingDevice(String device, String UplinkMacAddress) {
         return Optional.ofNullable(UplinkMacAddress).filter(addr -> addr.equals(device)).isPresent();
-    }
-
-    public static final class CyclicUplinkReferenceException extends RuntimeException {
-        @Override
-        public String getMessage() {
-            return "Cyclic device connection is not accepted in network topology";
-        }
-    }
-
-    public static final class DuplicateDeviceException extends RuntimeException {
-        @Override
-        public String getMessage() {
-            return "A device with the same macAddress is already deployed to network";
-        }
     }
 }

@@ -6,6 +6,8 @@ package devices.network;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import devices.domain.DevicesNetwork;
+import devices.domain.exceptions.CyclicUplinkReferenceException;
+import devices.domain.exceptions.DuplicateDeviceException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -26,7 +28,7 @@ class DevicesNetworkTest {
         network.registerDevice(switchDevice);
 
         Assertions.assertThatThrownBy(() -> network.registerDevice(gateway))
-                .isInstanceOf(DevicesNetwork.DuplicateDeviceException.class);
+                .isInstanceOf(DuplicateDeviceException.class);
         Assertions.assertThatIterable(network.getRegisteredDevices())
                 .containsExactly(switchDevice);
     }
@@ -97,12 +99,12 @@ class DevicesNetworkTest {
         network.registerDevice(new Device("00:03", DeviceType.ACCESS_POINT, "00:04"));
 
         Assertions.assertThatThrownBy(() -> network.registerDevice(new Device("00:04", DeviceType.GATEWAY, "00:03")))
-                .isInstanceOf(DevicesNetwork.CyclicUplinkReferenceException.class);
+                .isInstanceOf(CyclicUplinkReferenceException.class);
 
         Assertions.assertThat(network.getRegisteredDevice("00:04")).isNull();
         
         Assertions.assertThatThrownBy(() -> network.registerDevice(aGateway("00", "00")))
-                .isInstanceOf(DevicesNetwork.CyclicUplinkReferenceException.class);
+                .isInstanceOf(CyclicUplinkReferenceException.class);
     }
 
     @Test
