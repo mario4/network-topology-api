@@ -6,15 +6,12 @@ import java.util.stream.Collectors;
 
 import devices.adapter.in.web.dto.DeviceEntryResponse;
 import devices.adapter.in.web.dto.DevicesNetworkTopologyResponse;
-import devices.adapter.in.web.dto.ErrorResponse;
 import devices.adapter.in.web.dto.RegisterDeviceRequest;
 import devices.adapter.in.web.exceptions.DeviceNotFoundException;
 import devices.adapter.in.web.mapper.DevicesNetworkTopologyMapper;
-import devices.adapter.out.InMemoryDevicesNetworkRepository;
 import devices.application.DevicesNetworkQueryUseCase;
 import devices.application.RegisterDeviceCommand;
 import devices.application.RegisterDeviceUseCase;
-import devices.port.out.DevicesNetworkRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,7 +43,7 @@ public class NetworkController {
         validateRegisterDeviceRequest(request);
 
         registerDeviceUseCase
-                .execute(new RegisterDeviceCommand(request.getMacAddress(), request.getType(), request.getUplinkMacAddress()));
+                .execute(new RegisterDeviceCommand(request.macAddress(), request.type(), request.uplinkMacAddress()));
     }
 
     @GetMapping("/{macAddress}")
@@ -78,11 +75,11 @@ public class NetworkController {
 
     private void validateRegisterDeviceRequest(RegisterDeviceRequest request) {
 
-        if (request.getMacAddress() == null)
+        if (request.macAddress() == null)
             throw new InvalidDeviceRegistrationParameters("invalid mac address");
-        if (request.getMacAddress().isEmpty())
+        if (request.macAddress().isEmpty())
             throw new InvalidDeviceRegistrationParameters("invalid mac address");
-        if (request.getType() == null)
+        if (request.type() == null)
             throw new InvalidDeviceRegistrationParameters("invalid device type");
     }
 
