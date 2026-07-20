@@ -2,6 +2,30 @@
 
 > This project is a simple Java application that implements a REST-API that can register devices in a network deployment represented in a tree structure.
 
+
+---
+# Table of Contents
+
+* [Overview](#overview)
+* [Architectural Style](#architectural-style)
+* [Aggregate Design](#aggregate-design)
+* [Repository Pattern](#repository-pattern)
+* [Use Cases](#use-cases)
+* [DTO Mapping](#dto-mapping)
+* [Concurrency](#concurrency)
+* [Testing Strategy](#testing-strategy)
+
+    * [Unit Tests](#unit-tests)
+    * [Integration Tests](#integration-tests)
+    * [Concurrency Tests](#concurrency-tests)
+* [Error Handling](#error-handling)
+* [Design Trade-offs](#design-trade-offs)
+
+    * [In-memory Persistence](#in-memory-persistence)
+    * [Lightweight DDD](#lightweight-ddd)
+    * [Hexagonal Architecture](#hexagonal-architecture)
+* [Future Improvements](#future-improvements)
+* [Installation](#installation)
 ---
 
 # Architecture & Design Decisions
@@ -18,7 +42,7 @@ This project implements a REST API for managing a network topology of connected 
 
 ---
 
-# Architectural Style
+## Architectural Style
 
 The project adopts a lightweight combination of **Domain-Driven Design (DDD)** and **Hexagonal Architecture (Ports & Adapters)**.
 
@@ -51,7 +75,7 @@ This dependency direction ensures that the domain layer has no knowledge of Spri
 
 ---
 
-# Aggregate Design
+## Aggregate Design
 
 `DevicesNetwork` is the Aggregate Root.
 
@@ -68,7 +92,7 @@ The rest of the application never manipulates device relationships directly.
 
 ---
 
-# Repository Pattern
+## Repository Pattern
 
 The application defines a repository abstraction:
 
@@ -88,7 +112,7 @@ Although the current implementation stores data in memory, another persistence i
 
 ---
 
-# Use Cases
+## Use Cases
 
 Business operations are modeled explicitly as application use cases.
 
@@ -108,7 +132,7 @@ Business rules remain inside the aggregate.
 
 ---
 
-# DTO Mapping
+## DTO Mapping
 
 The REST API does not expose domain objects directly.
 
@@ -122,7 +146,7 @@ This prevents transport concerns from leaking into the domain model.
 
 ---
 
-# Concurrency
+## Concurrency (Development in progress)
 
 The application is designed so that device registration can safely support concurrent requests.
 
@@ -153,7 +177,7 @@ Focus areas include:
 
 Verify the REST API and Spring configuration.
 
-### Concurrency Tests
+### Concurrency Tests (Development in progress)
 
 Dedicated integration tests verify that multiple concurrent registration requests cannot corrupt the network topology.
 
@@ -161,7 +185,7 @@ The tests validate correctness rather than performance.
 
 ---
 
-# Error Handling
+## Error Handling
 
 Business rule violations are represented as domain exceptions.
 
@@ -171,11 +195,11 @@ This keeps HTTP concerns outside the domain model.
 
 ---
 
-# Design Trade-offs
+## Design Trade-offs
 
 Several intentional design decisions were made during implementation.
 
-## In-memory persistence
+### In-memory persistence
 
 The assignment does not require persistent storage.
 
@@ -185,7 +209,7 @@ The repository abstraction allows a database-backed implementation to be added l
 
 ---
 
-## Lightweight DDD
+### Lightweight DDD
 
 The project intentionally applies DDD selectively.
 
@@ -195,7 +219,7 @@ The goal was to produce a simple, maintainable solution rather than demonstrate 
 
 ---
 
-## Hexagonal Architecture
+### Hexagonal Architecture
 
 Hexagonal Architecture is used primarily to isolate business logic from external concerns.
 
@@ -205,7 +229,7 @@ This makes the application easier to test and easier to evolve.
 
 ---
 
-# Future Improvements
+## Future Improvements
 
 Potential future enhancements include:
 
@@ -220,8 +244,8 @@ The current architecture was intentionally designed so these features can be int
 
 ---
 
-## Installation
-### Clone the repository
+# Installation
+## Clone the repository
 
 ```bash
 git clone https://github.com/mario4/device-service.git
@@ -232,7 +256,9 @@ cd device-service
 
 ## Build 
 
+```bash
 ./gradlew build
+```
 
 ## Run the application
 
@@ -263,11 +289,11 @@ If the default port 8080 is already assigned to another service, use another por
 ```
 
 
-## Testing
+### Testing
 
 `./gradlew test`
 
-## Usage 
+### Usage 
 
 After running the application, head over to http://localhost:8080/swagger-ui/index.html#/ in the browser.
 
