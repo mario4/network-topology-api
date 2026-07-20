@@ -146,7 +146,9 @@ This prevents transport concerns from leaking into the domain model.
 
 ---
 
-## Concurrency (Development in progress)
+## Concurrency
+
+> Development in progress
 
 The application is designed so that device registration can safely support concurrent requests.
 
@@ -177,7 +179,9 @@ Focus areas include:
 
 Verify the REST API and Spring configuration.
 
-### Concurrency Tests (Development in progress)
+### Concurrency Tests
+
+> Development in progress
 
 Dedicated integration tests verify that multiple concurrent registration requests cannot corrupt the network topology.
 
