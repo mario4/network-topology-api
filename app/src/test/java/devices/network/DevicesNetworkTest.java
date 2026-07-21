@@ -3,20 +3,26 @@
  */
 package devices.network;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
+import devices.adapter.in.web.NetworkController;
+import devices.application.DevicesNetworkQueryUseCase;
 import devices.domain.DevicesNetwork;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import devices.domain.Device;
 import devices.domain.DeviceType;
 
 class DevicesNetworkTest {
-    private DevicesNetwork network = new DevicesNetwork();
+
 
     @Test
     void should_Not_Accept_Duplicate_Devices() {
+        DevicesNetwork network = new DevicesNetwork();
         String duplicateMacAddress = "00:01";
 
         Device switchDevice = new Device(duplicateMacAddress, DeviceType.SWITCH, null);
@@ -25,15 +31,16 @@ class DevicesNetworkTest {
 
         network.registerDevice(switchDevice);
 
-        Assertions.assertThatThrownBy(() -> network.registerDevice(gateway))
+        assertThatThrownBy(() -> network.registerDevice(gateway))
                 .isInstanceOf(DevicesNetwork.DuplicateDeviceException.class);
-        Assertions.assertThatIterable(network.getRegisteredDevices())
+        assertThatIterable(network.getRegisteredDevices())
                 .containsExactly(switchDevice);
     }
 
     @Test
     void can_Register_Device_To_Network() {
-        assertEquals(null, network.getRegisteredDevice("00:01"));
+        DevicesNetwork network= new DevicesNetwork();
+        assertNull(network.getRegisteredDevice("00:01"));
 
         Device device = aSwitch("00:01", null);
         network.registerDevice(device);
@@ -43,20 +50,22 @@ class DevicesNetworkTest {
 
     @Test
     void can_List_Devices_OnNetwork_Sorted_By_Type() {
+        DevicesNetwork network = new DevicesNetwork();
         Device switchOne = aSwitch("00:01", null);
         Device gateway = aGateway("00:02", null);
         Device switchTwo = aSwitch("00:03", null);
         Device accessPoint = anAccesspoint("00:04", null);
 
-        registerDevices(switchOne, gateway, switchTwo, accessPoint);
+        registerDevices(network, switchOne, gateway, switchTwo, accessPoint);
 
-        Assertions.assertThatIterable(network.getRegisteredDevices())
+        assertThatIterable(network.getRegisteredDevices())
                 .containsExactly(gateway, switchOne, switchTwo,
                         accessPoint);
     }
 
     @Test
     void can_Add_Connected_Devices_In_Network() {
+        DevicesNetwork network = new DevicesNetwork();
         Device switchOne = aSwitch("00:01", null);
         Device switchthree = aSwitch("00:09", null);
 
@@ -64,52 +73,55 @@ class DevicesNetworkTest {
         Device switchTwo = aSwitch("00:03", "00:01");
         Device accessPoint = anAccesspoint("00:04", "00:01");
 
-        registerDevices(switchOne,switchthree, gateway, switchTwo, accessPoint);
+        registerDevices(network, switchOne,switchthree, gateway, switchTwo, accessPoint);
 
-        Assertions.assertThatIterable(switchOne.getConnectedDevices())
+        assertThatIterable(switchOne.getConnectedDevices())
                 .contains(gateway, switchTwo, accessPoint);
 
         Device gatewayTwo = aGateway("00:05", "00:03");
 
-        registerDevices(gatewayTwo);
+        registerDevices(network, gatewayTwo);
 
-        Assertions.assertThatIterable(switchTwo.getConnectedDevices())
+        assertThatIterable(switchTwo.getConnectedDevices())
                 .containsExactly(gatewayTwo);
     }
 
     @Test
     void can_Add_Connected_Devices_Out_Of_Order() {
+         DevicesNetwork devicesNetwork = new DevicesNetwork();
         Device switchOne = aSwitch("00:01", null);
         Device gateway = aGateway("00:02", "00:01");
         Device switchTwo = aSwitch("00:03", "00:01");
         Device accessPoint = anAccesspoint("00:04", "00:01");
 
-        registerDevices(gateway, switchTwo, accessPoint, switchOne);
+        registerDevices(devicesNetwork, gateway, switchTwo, accessPoint, switchOne);
 
-        Assertions.assertThatIterable(switchOne.getConnectedDevices())
+        assertThatIterable(switchOne.getConnectedDevices())
                 .contains(gateway, switchTwo, accessPoint);
     }
 
     @Test
     void can_Not_Establish_Cyclic_Connections() {
+        DevicesNetwork network = new DevicesNetwork();
         network.registerDevice(new Device("00:01", DeviceType.GATEWAY, null));
         network.registerDevice(new Device("00:02", DeviceType.SWITCH, null));
         network.registerDevice(new Device("00:03", DeviceType.ACCESS_POINT, "00:04"));
 
-        Assertions.assertThatThrownBy(() -> network.registerDevice(new Device("00:04", DeviceType.GATEWAY, "00:03")))
+        assertThatThrownBy(() -> network.registerDevice(new Device("00:04", DeviceType.GATEWAY, "00:03")))
                 .isInstanceOf(DevicesNetwork.CyclicUplinkReferenceException.class);
 
-        Assertions.assertThat(network.getRegisteredDevice("00:04")).isNull();
+        assertThat(network.getRegisteredDevice("00:04")).isNull();
         
-        Assertions.assertThatThrownBy(() -> network.registerDevice(aGateway("00", "00")))
+        assertThatThrownBy(() -> network.registerDevice(aGateway("00", "00")))
                 .isInstanceOf(DevicesNetwork.CyclicUplinkReferenceException.class);
     }
 
     @Test
     void should_Be_Empty_Before_Device_Registrations(){
 
-        Assertions.assertThat(network.getRegisteredDevices()).isEmpty();
-        Assertions.assertThat(network.getTopology().getConnectedDevices()).isEmpty();
+        DevicesNetwork network = new DevicesNetwork();
+        assertThat(network.getRegisteredDevices()).isEmpty();
+        assertThat(network.getTopology().getConnectedDevices()).isEmpty();
     }
 
     @Test
@@ -117,16 +129,17 @@ class DevicesNetworkTest {
         Device switchOne = aSwitch("00:01", null);
         Device gateway = aGateway("00:02", null);
 
+        DevicesNetwork network = new DevicesNetwork();
         network.registerDevice(switchOne);
         network.registerDevice(gateway);
 
-        Assertions.assertThatIterable(network.getTopology().getConnectedDevices())
+        assertThatIterable(network.getTopology().getConnectedDevices())
                 .contains(gateway, switchOne);
     }
 
-    private void registerDevices(Device... devices) {
-        for (int i = 0; i < devices.length; i++) {
-            network.registerDevice(devices[i]);
+    private void registerDevices(DevicesNetwork network,Device... devices) {
+        for (Device device : devices) {
+            network.registerDevice(device);
         }
     }
 
