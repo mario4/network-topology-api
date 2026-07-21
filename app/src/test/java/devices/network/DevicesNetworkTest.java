@@ -3,31 +3,45 @@
  */
 package devices.network;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-
-import devices.adapter.in.web.NetworkController;
-import devices.application.DevicesNetworkQueryUseCase;
-import devices.domain.DevicesNetwork;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
 import devices.domain.Device;
 import devices.domain.DeviceType;
+import devices.domain.DevicesNetwork;
+import devices.domain.InvalidMacAddressException;
+import org.junit.jupiter.api.Test;
+
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 class DevicesNetworkTest {
+
+    @Test
+     void shouldNotAcceptInvalidMacAddress(){
+        assertThrows(
+                InvalidMacAddressException.class,
+                () -> new Device("invalidAddress", DeviceType.GATEWAY, null)
+        );
+
+        assertThrows(
+                InvalidMacAddressException.class,
+                () -> new Device("", DeviceType.GATEWAY, null)
+        );
+        assertThrows(
+                InvalidMacAddressException.class,
+                () -> new Device("", DeviceType.GATEWAY, null)
+        );
+    }
 
 
     @Test
     void should_Not_Accept_Duplicate_Devices() {
         DevicesNetwork network = new DevicesNetwork();
-        String duplicateMacAddress = "00:01";
+        String duplicateMacAddress = "01";
 
-        Device switchDevice = new Device(duplicateMacAddress, DeviceType.SWITCH, null);
+        Device switchDevice = aSwitch(duplicateMacAddress,null);
 
-        Device gateway = new Device(duplicateMacAddress, DeviceType.GATEWAY, null);
+        Device gateway = aGateway(duplicateMacAddress,null);
 
         network.registerDevice(switchDevice);
 
@@ -40,21 +54,21 @@ class DevicesNetworkTest {
     @Test
     void can_Register_Device_To_Network() {
         DevicesNetwork network= new DevicesNetwork();
-        assertNull(network.getRegisteredDevice("00:01"));
+        assertNull(network.getRegisteredDevice(givenMacAddress("01")));
 
-        Device device = aSwitch("00:01", null);
+        Device device = aSwitch("01", null);
         network.registerDevice(device);
 
-        assertEquals(device, network.getRegisteredDevice("00:01"));
+        assertEquals(device, network.getRegisteredDevice(givenMacAddress("01")));
     }
 
     @Test
     void can_List_Devices_OnNetwork_Sorted_By_Type() {
         DevicesNetwork network = new DevicesNetwork();
-        Device switchOne = aSwitch("00:01", null);
-        Device gateway = aGateway("00:02", null);
-        Device switchTwo = aSwitch("00:03", null);
-        Device accessPoint = anAccesspoint("00:04", null);
+        Device switchOne = aSwitch("01", null);
+        Device gateway = aGateway("02", null);
+        Device switchTwo = aSwitch("03", null);
+        Device accessPoint = anAccesspoint("04", null);
 
         registerDevices(network, switchOne, gateway, switchTwo, accessPoint);
 
@@ -66,19 +80,19 @@ class DevicesNetworkTest {
     @Test
     void can_Add_Connected_Devices_In_Network() {
         DevicesNetwork network = new DevicesNetwork();
-        Device switchOne = aSwitch("00:01", null);
-        Device switchthree = aSwitch("00:09", null);
+        Device switchOne = aSwitch("01", null);
+        Device switchthree = aSwitch("09", null);
 
-        Device gateway = aGateway("00:02", "00:01");
-        Device switchTwo = aSwitch("00:03", "00:01");
-        Device accessPoint = anAccesspoint("00:04", "00:01");
+        Device gateway = aGateway("02", "01");
+        Device switchTwo = aSwitch("03", "01");
+        Device accessPoint = anAccesspoint("04", "01");
 
         registerDevices(network, switchOne,switchthree, gateway, switchTwo, accessPoint);
 
         assertThatIterable(switchOne.getConnectedDevices())
                 .contains(gateway, switchTwo, accessPoint);
 
-        Device gatewayTwo = aGateway("00:05", "00:03");
+        Device gatewayTwo = aGateway("05", "03");
 
         registerDevices(network, gatewayTwo);
 
@@ -88,11 +102,12 @@ class DevicesNetworkTest {
 
     @Test
     void can_Add_Connected_Devices_Out_Of_Order() {
-         DevicesNetwork devicesNetwork = new DevicesNetwork();
-        Device switchOne = aSwitch("00:01", null);
-        Device gateway = aGateway("00:02", "00:01");
-        Device switchTwo = aSwitch("00:03", "00:01");
-        Device accessPoint = anAccesspoint("00:04", "00:01");
+        DevicesNetwork devicesNetwork = new DevicesNetwork();
+
+        Device switchOne = aSwitch("A1", null);
+        Device gateway = aGateway("A2", "A1");
+        Device switchTwo = aSwitch("A3", "A1");
+        Device accessPoint = anAccesspoint("A4", "A1");
 
         registerDevices(devicesNetwork, gateway, switchTwo, accessPoint, switchOne);
 
@@ -103,14 +118,14 @@ class DevicesNetworkTest {
     @Test
     void can_Not_Establish_Cyclic_Connections() {
         DevicesNetwork network = new DevicesNetwork();
-        network.registerDevice(new Device("00:01", DeviceType.GATEWAY, null));
-        network.registerDevice(new Device("00:02", DeviceType.SWITCH, null));
-        network.registerDevice(new Device("00:03", DeviceType.ACCESS_POINT, "00:04"));
+        network.registerDevice(aGateway("01",null));
+        network.registerDevice(aSwitch("02",null));
+        network.registerDevice(anAccesspoint("03","04"));
 
-        assertThatThrownBy(() -> network.registerDevice(new Device("00:04", DeviceType.GATEWAY, "00:03")))
+        assertThatThrownBy(() -> network.registerDevice(aGateway("04","03")))
                 .isInstanceOf(DevicesNetwork.CyclicUplinkReferenceException.class);
 
-        assertThat(network.getRegisteredDevice("00:04")).isNull();
+        assertThat(network.getRegisteredDevice("04")).isNull();
         
         assertThatThrownBy(() -> network.registerDevice(aGateway("00", "00")))
                 .isInstanceOf(DevicesNetwork.CyclicUplinkReferenceException.class);
@@ -126,8 +141,8 @@ class DevicesNetworkTest {
 
     @Test
     void shouldRegisterMultipleDevicesWithoutUplinkConnection(){
-        Device switchOne = aSwitch("00:01", null);
-        Device gateway = aGateway("00:02", null);
+        Device switchOne = aSwitch("D1", null);
+        Device gateway = aGateway("D2", null);
 
         DevicesNetwork network = new DevicesNetwork();
         network.registerDevice(switchOne);
@@ -144,14 +159,19 @@ class DevicesNetworkTest {
     }
 
     private Device aGateway(String macAddress, String uplinkAddress) {
-        return new Device(macAddress, DeviceType.GATEWAY, uplinkAddress);
+        return new Device(givenMacAddress(macAddress), DeviceType.GATEWAY, givenMacAddress(uplinkAddress));
     }
 
     private Device aSwitch(String macAddress, String uplinkAddress) {
-        return new Device(macAddress, DeviceType.SWITCH, uplinkAddress);
+        return new Device(givenMacAddress(macAddress), DeviceType.SWITCH, givenMacAddress(uplinkAddress));
     }
 
     private Device anAccesspoint(String macAddress, String uplinkAddress) {
-        return new Device(macAddress, DeviceType.ACCESS_POINT, uplinkAddress);
+        return new Device(givenMacAddress(macAddress), DeviceType.ACCESS_POINT, givenMacAddress(uplinkAddress));
+    }
+
+    private String givenMacAddress(String suffix){
+
+        return Optional.ofNullable(suffix).map((s) -> "CB:0B:B6:9B:34:" + s).orElse(null);
     }
 }

@@ -8,9 +8,9 @@ import java.util.stream.Collectors;
 
 public class DevicesNetwork {
 
-    private Set<Device> registeredDevices = new LinkedHashSet<>();
+    private final Set<Device> registeredDevices = new LinkedHashSet<>();
 
-    private Device networkRoot = new Device("root", null, null);
+    private final Device networkRoot = new Device(MacAddress.ROOT_ADDRESS, null, null);
 
     public void registerDevice(Device newDevice) {
         Device device = getRegisteredDevice(newDevice.getMacAddress().value());
@@ -65,22 +65,22 @@ public class DevicesNetwork {
     }
 
     private boolean isUplinkEmpty(Device device) {
-        return device.getUplinkMacAddress().value() == null || device.getUplinkMacAddress().value().isEmpty();
+        return Optional.ofNullable(device.getUplinkMacAddress()).map(MacAddress::value).isEmpty() || device.getUplinkMacAddress().value().isEmpty();
     }
 
     private void resolveOutOfOrderUplinkConnections(Device device) {
         for (Iterator<Device> i = networkRoot.getConnectedDevices().iterator(); i.hasNext();) {
             Device hangingDevice = i.next();
 
-            if (isNoLongerHangingDevice(device.getMacAddress().value(), hangingDevice.getUplinkMacAddress().value())) {
+            if (isNoLongerHangingDevice(device.getMacAddress().value(), hangingDevice.getUplinkMacAddress())) {
                 device.getConnectedDevices().add(hangingDevice);
                 i.remove();
             }
         }
     }
 
-    private boolean isNoLongerHangingDevice(String device, String UplinkMacAddress) {
-        return Optional.ofNullable(UplinkMacAddress).filter(addr -> addr.equals(device)).isPresent();
+    private boolean isNoLongerHangingDevice(String device, MacAddress UplinkMacAddress) {
+        return Optional.ofNullable(UplinkMacAddress).filter(addr -> addr.value().equals(device)).isPresent();
     }
 
     public static final class CyclicUplinkReferenceException extends RuntimeException {

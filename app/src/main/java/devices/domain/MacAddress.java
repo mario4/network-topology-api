@@ -1,15 +1,15 @@
 package devices.domain;
 
 public record MacAddress(String value) {
+    public static final String ROOT_ADDRESS = "root";
 
     public MacAddress {
-//        if (value == null) {
-//            throw new IllegalArgumentException("Invalid MAC Address format");
-//        }
-//        else if (!value.matches("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$")) {
-//            throw new IllegalArgumentException("Invalid MAC Address format");
-//        }
+        if (value != null) {
+            if (!ROOT_ADDRESS.equals(value)) {
+                if (!value.toUpperCase().matches("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$")) {
+                    throw new InvalidMacAddressException("Invalid MAC Address format");
+                }
+            }
+        }
     }
-
-
 }
