@@ -2,6 +2,7 @@ package devices.adapter.in.web.exceptions;
 
 import devices.adapter.in.web.dto.ErrorResponse;
 import devices.domain.DevicesNetwork;
+import devices.domain.InvalidMacAddressException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -46,5 +47,14 @@ public class NetworkControllerExceptionHandler {
                 "Device not found",
                 ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(InvalidMacAddressException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidMACAddress(InvalidMacAddressException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Invalid MAC address",
+                ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 }

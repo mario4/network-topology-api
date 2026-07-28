@@ -6,16 +6,12 @@ import java.util.stream.Collectors;
 
 import devices.adapter.in.web.dto.DeviceEntryResponse;
 import devices.adapter.in.web.dto.DevicesNetworkTopologyResponse;
-import devices.adapter.in.web.dto.ErrorResponse;
 import devices.adapter.in.web.dto.RegisterDeviceRequest;
 import devices.adapter.in.web.exceptions.DeviceNotFoundException;
 import devices.adapter.in.web.mapper.DevicesNetworkTopologyMapper;
-import devices.adapter.out.InMemoryDevicesNetworkRepository;
 import devices.application.DevicesNetworkQueryUseCase;
 import devices.application.RegisterDeviceCommand;
 import devices.application.RegisterDeviceUseCase;
-import devices.port.out.DevicesNetworkRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,31 +25,37 @@ import devices.domain.Device;
 @RequestMapping("/api/network/devices")
 public class NetworkController {
 
-    @Autowired
-    private RegisterDeviceUseCase registerDeviceUseCase;
+    private final RegisterDeviceUseCase registerDeviceUseCase;
 
-    @Autowired
-    private DevicesNetworkQueryUseCase devicesNetworkQueryUseCase;
+    private final DevicesNetworkQueryUseCase devicesNetworkQueryUseCase;
+
+    public NetworkController(RegisterDeviceUseCase registerDeviceUseCase, DevicesNetworkQueryUseCase devicesNetworkQueryUseCase) {
+        this.registerDeviceUseCase = registerDeviceUseCase;
+        this.devicesNetworkQueryUseCase = devicesNetworkQueryUseCase;
+    }
 
     @GetMapping("/topology")
     public DevicesNetworkTopologyResponse getNetworkTopology() {
         return DevicesNetworkTopologyMapper.map(devicesNetworkQueryUseCase.getTopology());
     }
 
-    @PostMapping("/")
+    @PostMapping
     public void registerDevice(@RequestBody RegisterDeviceRequest request) {
 
         validateRegisterDeviceRequest(request);
 
         registerDeviceUseCase
-                .execute(new RegisterDeviceCommand(request.getMacAddress(), request.getType(), request.getUplinkMacAddress()));
+                .execute(new RegisterDeviceCommand(request.macAddress(), request.type(), request.uplinkMacAddress()));
+    }
+
+    @GetMapping
+    public List<DeviceEntryResponse> listRegisteredDevices() {
+        return devicesNetworkQueryUseCase.getRegisteredDevices().stream()
+                .map(d -> new DeviceEntryResponse(d.getMacAddress().value(), d.getType())).collect(Collectors.toList());
     }
 
     @GetMapping("/{macAddress}")
     public DeviceEntryResponse getRegisteredDevice(@PathVariable String macAddress) {
-        if(macAddress == null)
-            throw new RuntimeException("Invalid mac address");
-
         Device device = devicesNetworkQueryUseCase.getRegisteredDevice(macAddress);
         if(device == null){
             throw new DeviceNotFoundException("device not found");
@@ -70,19 +72,13 @@ public class NetworkController {
         return DevicesNetworkTopologyMapper.map(device);
     }
 
-    @GetMapping("/list")
-    public List<DeviceEntryResponse> listRegisteredDevices() {
-        return devicesNetworkQueryUseCase.getRegisteredDevices().stream()
-                .map(d -> new DeviceEntryResponse(d.getMacAddress().value(), d.getType())).collect(Collectors.toList());
-    }
-
     private void validateRegisterDeviceRequest(RegisterDeviceRequest request) {
 
-        if (request.getMacAddress() == null)
+        if (request.macAddress() == null)
             throw new InvalidDeviceRegistrationParameters("invalid mac address");
-        if (request.getMacAddress().isEmpty())
+        if (request.macAddress().isEmpty())
             throw new InvalidDeviceRegistrationParameters("invalid mac address");
-        if (request.getType() == null)
+        if (request.type() == null)
             throw new InvalidDeviceRegistrationParameters("invalid device type");
     }
 
