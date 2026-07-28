@@ -3,7 +3,9 @@ package devices.adapter.in.web.mapper;
 import devices.adapter.in.web.dto.DevicesNetworkTopologyResponse;
 import devices.domain.Device;
 
-public class DevicesNetworkTopologyMapper {
+public final class DevicesNetworkTopologyMapper {
+
+    private DevicesNetworkTopologyMapper(){}
 
     public static DevicesNetworkTopologyResponse map(Device device){
         return new DevicesNetworkTopologyResponse(

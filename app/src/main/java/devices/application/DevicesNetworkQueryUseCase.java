@@ -12,12 +12,9 @@ import java.util.stream.Collectors;
 @Service
 public class DevicesNetworkQueryUseCase {
 
+    private final DevicesNetworkRepository devicesNetworkRepository;
+
     @Autowired
-    private DevicesNetworkRepository devicesNetworkRepository;
-
-    public DevicesNetworkQueryUseCase() {
-    }
-
     public DevicesNetworkQueryUseCase(DevicesNetworkRepository devicesNetworkRepository) {
         this.devicesNetworkRepository = devicesNetworkRepository;
     }
