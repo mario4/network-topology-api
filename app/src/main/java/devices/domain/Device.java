@@ -21,8 +21,9 @@ public class Device implements Comparable<Device>, Serializable{
     public Device(String macAddress, DeviceType type, String uplinkMacAddress) {
         this.macAddress = new MacAddress(macAddress);
         this.type = type;
-        this.uplinkMacAddress = Optional.ofNullable(uplinkMacAddress).map(MacAddress::new).orElse(null);
-    }
+        this.uplinkMacAddress = (uplinkMacAddress == null || uplinkMacAddress.isBlank())
+                ? null
+                : new MacAddress(uplinkMacAddress);    }
 
     @Override
     public int hashCode() {
@@ -67,8 +68,8 @@ public class Device implements Comparable<Device>, Serializable{
         return type;
     }
 
-    public MacAddress getUplinkMacAddress() {
-        return uplinkMacAddress;
+    public Optional<MacAddress> getUplinkMacAddress() {
+        return Optional.ofNullable(uplinkMacAddress);
     }
 
     public List<Device> getConnectedDevices() {

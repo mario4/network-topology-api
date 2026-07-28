@@ -19,7 +19,7 @@ public class DevicesNetwork {
             throw new DevicesNetwork.DuplicateDeviceException();
         }
 
-        if (newDevice.getMacAddress().equals(newDevice.getUplinkMacAddress()))
+        if (newDevice.getMacAddress().equals(newDevice.getUplinkMacAddress().orElse(null)))
             throw new DevicesNetwork.CyclicUplinkReferenceException();
 
         deployDeviceToNetwork(newDevice);
@@ -43,7 +43,7 @@ public class DevicesNetwork {
         if (isUplinkEmpty(device)) {
             networkRoot.getConnectedDevices().add(device);
         } else {
-            Device uplinkDevice = getRegisteredDevice(device.getUplinkMacAddress().value());
+            Device uplinkDevice = getRegisteredDevice(device.getUplinkMacAddress().map(MacAddress::value).orElse(null));
 
             if (uplinkDevice == null) {
                 networkRoot.getConnectedDevices().add(device);
@@ -61,11 +61,11 @@ public class DevicesNetwork {
 
     private boolean createsCyclicReference(Device newDevice, Device uplinkDevice) {
 
-        return newDevice.getMacAddress().equals(uplinkDevice.getUplinkMacAddress());
+        return newDevice.getMacAddress().equals(uplinkDevice.getUplinkMacAddress().orElse(null));
     }
 
     private boolean isUplinkEmpty(Device device) {
-        return Optional.ofNullable(device.getUplinkMacAddress()).map(MacAddress::value).isEmpty() || device.getUplinkMacAddress().value().isEmpty();
+        return device.getUplinkMacAddress().map(MacAddress::value).isEmpty();
     }
 
     private void resolveOutOfOrderUplinkConnections(Device device) {
@@ -79,8 +79,8 @@ public class DevicesNetwork {
         }
     }
 
-    private boolean isNoLongerHangingDevice(String device, MacAddress UplinkMacAddress) {
-        return Optional.ofNullable(UplinkMacAddress).filter(addr -> addr.value().equals(device)).isPresent();
+    private boolean isNoLongerHangingDevice(String device, Optional<MacAddress> uplinkMacAddress) {
+        return uplinkMacAddress.filter(addr -> addr.value().equals(device)).isPresent();
     }
 
     public static final class CyclicUplinkReferenceException extends RuntimeException {
