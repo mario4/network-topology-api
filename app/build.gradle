@@ -54,5 +54,10 @@ jacocoTestReport {
 
 dependencyCheck {
     failBuildOnCVSS = 7.0
-    suppressionFile = 'dependency-check-suppressions.xml' // optional, for documented false positives
+
+    nvd {
+        apiKey = System.getenv("NVD_API_KEY")
+        // Setting a delay prevents NVD rate limit errors (recommended: 16000ms)
+        delay = 16000
+    }
 }

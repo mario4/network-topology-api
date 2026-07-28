@@ -61,7 +61,7 @@ jobs:
       - name: Run OWASP Dependency-Check
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
-        run: ./gradlew dependencyCheckAnalyze -DnvdApiKey=$NVD_API_KEY
+        run: ./gradlew dependencyCheckAnalyze
 
       - name: Upload scan report
         if: always()
