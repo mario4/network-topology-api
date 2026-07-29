@@ -3,6 +3,7 @@ package devices.domain;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -14,7 +15,9 @@ public class Device implements Comparable<Device>, Serializable{
 
     private MacAddress uplinkMacAddress;
 
-    private List<Device> connectedDevices = new ArrayList<>();
+    private final List<Device> connectedDevices = new CopyOnWriteArrayList<>();
+
+    private Device uplinkConnection;
 
     public Device() {
     }

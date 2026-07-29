@@ -4,6 +4,9 @@ import devices.domain.DevicesNetwork;
 import devices.port.out.DevicesNetworkRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 @Repository
 public class InMemoryDevicesNetworkRepository implements DevicesNetworkRepository {
 
