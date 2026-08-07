@@ -9,7 +9,7 @@ import devices.domain.DevicesNetwork;
 import devices.domain.InvalidMacAddressException;
 import org.junit.jupiter.api.Test;
 
-import static devices.network.TestDataUtil.*;
+import static devices.common.TestDataUtil.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 

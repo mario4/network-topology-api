@@ -12,6 +12,7 @@ import devices.adapter.in.web.mapper.DevicesNetworkTopologyMapper;
 import devices.application.DevicesNetworkQueryUseCase;
 import devices.application.RegisterDeviceCommand;
 import devices.application.RegisterDeviceUseCase;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,10 +41,7 @@ public class NetworkController {
     }
 
     @PostMapping
-    public void registerDevice(@RequestBody RegisterDeviceRequest request) {
-
-        validateRegisterDeviceRequest(request);
-
+    public void registerDevice(@Valid @RequestBody RegisterDeviceRequest request) {
         registerDeviceUseCase
                 .execute(new RegisterDeviceCommand(request.macAddress(), request.type(), request.uplinkMacAddress()));
     }
@@ -70,22 +68,5 @@ public class NetworkController {
             throw new DeviceNotFoundException("device not found");
         }
         return DevicesNetworkTopologyMapper.map(device);
-    }
-
-    private void validateRegisterDeviceRequest(RegisterDeviceRequest request) {
-
-        if (request.macAddress() == null)
-            throw new InvalidDeviceRegistrationParameters("invalid mac address");
-        if (request.macAddress().isEmpty())
-            throw new InvalidDeviceRegistrationParameters("invalid mac address");
-        if (request.type() == null)
-            throw new InvalidDeviceRegistrationParameters("invalid device type");
-    }
-
-    public static final class InvalidDeviceRegistrationParameters extends RuntimeException{
-
-        public InvalidDeviceRegistrationParameters( String message) {
-            super(message);
-        }
     }
 }

@@ -2,6 +2,7 @@ package devices.api;
 
 import devices.adapter.in.web.dto.DeviceEntryResponse;
 import devices.adapter.in.web.dto.DevicesNetworkTopologyResponse;
+import devices.adapter.in.web.dto.ErrorResponse;
 import devices.adapter.in.web.dto.RegisterDeviceRequest;
 import devices.domain.DeviceType;
 import devices.port.out.DevicesNetworkRepository;
@@ -18,7 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static devices.network.TestDataUtil.givenMacAddress;
+import static devices.common.TestDataUtil.givenMacAddress;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIterable;
 
@@ -42,8 +43,33 @@ public class DevicesNetworkControllerTest {
         devicesNetworkRepository.clear();
     }
 
+    // Registration tests
+
     @Test
-    void canRegisterDevice() {
+    void shouldRegisterNewDevice() {
+        String macAddress = givenMacAddress("01");
+
+        sendRegisterRequest(baseUrl, macAddress, DeviceType.SWITCH, "");
+
+        String urlGetDevice = baseUrl + "/" + macAddress;
+        DeviceEntryResponse response = restTemplate.getForObject(urlGetDevice, DeviceEntryResponse.class);
+
+        assertThat(response.macAddress()).isEqualTo(macAddress);
+    }
+
+    @Test
+    void should_Validate_Device_Registration_Parameters() {
+        ResponseEntity<ErrorResponse> response;
+
+        response = sendRegisterRequest(baseUrl, "", null, "", ErrorResponse.class);
+        assertThat(response.getStatusCode())
+                .isEqualTo(HttpStatusCode.valueOf(400));
+
+        assertThat(response.getBody().message()).contains(RegisterDeviceRequest.MAC_ADDRESS_REQUIRED).contains(RegisterDeviceRequest.TYPE_REQUIRED);
+    }
+
+    @Test
+    void shouldReturnRegisteredDevice() {
         String macAddress = givenMacAddress("01");
 
         sendRegisterRequest(baseUrl, macAddress, DeviceType.SWITCH, "");
@@ -68,12 +94,6 @@ public class DevicesNetworkControllerTest {
         assertThatIterable(
                 response.getBody().stream().map(DeviceEntryResponse::macAddress).collect(Collectors.toList()))
                 .contains(macAddresses);
-    }
-
-    @Test
-    void should_Validate_Device_Registration_Parameters() {
-        assertThat(sendRegisterRequest(baseUrl, null, null, "").getStatusCode())
-                .isEqualTo(HttpStatusCode.valueOf(400));
     }
 
     @Test
@@ -104,16 +124,22 @@ public class DevicesNetworkControllerTest {
 
     }
 
-    private ResponseEntity<Void> sendRegisterRequest(String url, String macAddr, DeviceType deviceType,
-                                                     String uplinkMacAddr) {
+    private <T> ResponseEntity<T> sendRegisterRequest(
+            String url, String macAddr, DeviceType deviceType, String uplinkMacAddr, Class<T> responseType) {
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         RegisterDeviceRequest deviceRequest = new RegisterDeviceRequest(macAddr, deviceType, uplinkMacAddr);
-
         HttpEntity<RegisterDeviceRequest> httpEntity = new HttpEntity<>(deviceRequest, headers);
 
-        return restTemplate.exchange(url, HttpMethod.POST, httpEntity, Void.class);
+        return restTemplate.exchange(url, HttpMethod.POST, httpEntity, responseType);
+    }
+
+    private void sendRegisterRequest(
+            String url, String macAddr, DeviceType deviceType, String uplinkMacAddr) {
+
+        sendRegisterRequest(url, macAddr, deviceType, uplinkMacAddr, Void.class);
     }
 
     private void setupBranchingNetworkTopology(String url) {
