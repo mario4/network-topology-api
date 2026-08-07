@@ -5,13 +5,24 @@ import devices.domain.DevicesNetwork;
 import devices.domain.InvalidMacAddressException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import devices.adapter.in.web.NetworkController.InvalidDeviceRegistrationParameters;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
-public class NetworkControllerExceptionHandler {
+public class DomainExceptionHandler {
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex) {
+        String details = ex.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+
+        return new ResponseEntity<>(new ErrorResponse(400, "Validation failed", details), HttpStatus.BAD_REQUEST);
+    }
 
     @ExceptionHandler(DevicesNetwork.DuplicateDeviceException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateDeviceException(DevicesNetwork.DuplicateDeviceException ex) {
@@ -24,15 +35,6 @@ public class NetworkControllerExceptionHandler {
 
     @ExceptionHandler(DevicesNetwork.CyclicUplinkReferenceException.class)
     public ResponseEntity<ErrorResponse> handleCyclicUplinkReferenceException(DevicesNetwork.CyclicUplinkReferenceException ex) {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                "Bad Request",
-                ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(InvalidDeviceRegistrationParameters.class)
-    public ResponseEntity<ErrorResponse> handleBadParameters(InvalidDeviceRegistrationParameters ex) {
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
                 "Bad Request",
@@ -56,5 +58,23 @@ public class NetworkControllerExceptionHandler {
                 "Invalid MAC address",
                 ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleUnexpectedException(Exception ex) {
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        ErrorResponse error = new ErrorResponse(
+                status.value(),
+                "Internal Server Error",
+                "An unexpected server error occurred: Please contact support");
+
+        return new ResponseEntity<>(error, status);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleMalformedJson(HttpMessageNotReadableException ex) {
+        return new ResponseEntity<>(
+                new ErrorResponse(400, "Malformed request body", "Request body could not be parsed"),
+                HttpStatus.BAD_REQUEST);
     }
 }
