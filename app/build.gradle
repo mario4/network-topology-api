@@ -12,6 +12,8 @@ repositories {
     mavenCentral()
 }
 
+ext['tomcat.version'] = libs.versions.tomcat.get()
+
 dependencies {
     testImplementation libs.junit.jupiter
 
