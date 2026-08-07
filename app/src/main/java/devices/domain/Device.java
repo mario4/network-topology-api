@@ -3,8 +3,7 @@ package devices.domain;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.Optional;
 
 public class Device implements Comparable<Device>, Serializable{
 
@@ -14,7 +13,7 @@ public class Device implements Comparable<Device>, Serializable{
 
     private MacAddress uplinkMacAddress;
 
-    private List<Device> connectedDevices = new ArrayList<>();
+    private final List<Device> connectedDevices = new ArrayList<>();
 
     public Device() {
     }
@@ -22,13 +21,9 @@ public class Device implements Comparable<Device>, Serializable{
     public Device(String macAddress, DeviceType type, String uplinkMacAddress) {
         this.macAddress = new MacAddress(macAddress);
         this.type = type;
-        this.uplinkMacAddress = new MacAddress(uplinkMacAddress);
-    }
-    public Device(MacAddress macAddress, DeviceType type, MacAddress uplinkMacAddress) {
-        this.macAddress = macAddress;
-        this.type = type;
-        this.uplinkMacAddress = uplinkMacAddress;
-    }
+        this.uplinkMacAddress = (uplinkMacAddress == null || uplinkMacAddress.isBlank())
+                ? null
+                : new MacAddress(uplinkMacAddress);    }
 
     @Override
     public int hashCode() {
@@ -73,8 +68,8 @@ public class Device implements Comparable<Device>, Serializable{
         return type;
     }
 
-    public MacAddress getUplinkMacAddress() {
-        return uplinkMacAddress;
+    public Optional<MacAddress> getUplinkMacAddress() {
+        return Optional.ofNullable(uplinkMacAddress);
     }
 
     public List<Device> getConnectedDevices() {

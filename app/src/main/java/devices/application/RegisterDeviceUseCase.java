@@ -3,14 +3,12 @@ package devices.application;
 import devices.domain.Device;
 import devices.domain.DevicesNetwork;
 import devices.port.out.DevicesNetworkRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class RegisterDeviceUseCase {
 
-    @Autowired
-    private DevicesNetworkRepository networkRepository;
+    private final DevicesNetworkRepository networkRepository;
 
     public RegisterDeviceUseCase(DevicesNetworkRepository networkRepository) {
         this.networkRepository = networkRepository;

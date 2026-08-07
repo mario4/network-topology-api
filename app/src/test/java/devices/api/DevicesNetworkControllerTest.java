@@ -1,12 +1,10 @@
 package devices.api;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+import devices.adapter.in.web.dto.DeviceEntryResponse;
 import devices.adapter.in.web.dto.DevicesNetworkTopologyResponse;
-import devices.application.RegisterDeviceUseCase;
+import devices.adapter.in.web.dto.RegisterDeviceRequest;
+import devices.domain.DeviceType;
 import devices.port.out.DevicesNetworkRepository;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,16 +12,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 
-import devices.adapter.in.web.dto.DeviceEntryResponse;
-import devices.adapter.in.web.dto.RegisterDeviceRequest;
-import devices.domain.DeviceType;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static devices.network.TestDataUtil.givenMacAddress;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIterable;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class DevicesNetworkControllerTest {
@@ -37,109 +34,94 @@ public class DevicesNetworkControllerTest {
     @Autowired
     private DevicesNetworkRepository devicesNetworkRepository;
 
+    private String baseUrl;
+
     @BeforeEach
     void reset() {
+        baseUrl = "http://localhost:" + port + "/api/network/devices";
         devicesNetworkRepository.clear();
     }
 
     @Test
     void canRegisterDevice() {
-        String url = "http://localhost:" + port + "/api/network/devices/";
-        String urlGetDevice = "http://localhost:" + port + "/api/network/devices/00:01";
+        String macAddress = givenMacAddress("01");
 
-        sendRegisterRequest(url, "00:01", DeviceType.SWITCH, "");
+        sendRegisterRequest(baseUrl, macAddress, DeviceType.SWITCH, "");
 
+        String urlGetDevice = baseUrl + "/" + macAddress;
         DeviceEntryResponse response = restTemplate.getForObject(urlGetDevice, DeviceEntryResponse.class);
 
-        Assertions.assertThat(response.getMacAddress()).isEqualTo("00:01");
+        assertThat(response.macAddress()).isEqualTo(macAddress);
     }
 
     @Test
     void can_List_Registered_Devices() {
-        String url = "http://localhost:" + port + "/api/network/devices/";
-        String urlListDevice = "http://localhost:" + port + "/api/network/devices/list";
 
-        sendRegisterRequest(url, "00:01", DeviceType.SWITCH, "");
-        sendRegisterRequest(url, "00:02", DeviceType.GATEWAY, "");
+        String[] macAddresses = new String[]{givenMacAddress("01"), givenMacAddress("02"), givenMacAddress("03")};
 
-        ResponseEntity<List<DeviceEntryResponse>> response = restTemplate.exchange(urlListDevice, HttpMethod.GET, null,
-                new ParameterizedTypeReference<List<DeviceEntryResponse>>() {
+        Arrays.stream(macAddresses).forEach((s) -> sendRegisterRequest(baseUrl, s, DeviceType.GATEWAY, ""));
+
+        ResponseEntity<List<DeviceEntryResponse>> response = restTemplate.exchange(baseUrl, HttpMethod.GET, null,
+                new ParameterizedTypeReference<>() {
                 });
 
-        Assertions
-                .assertThatIterable(
-                        response.getBody().stream().map(d -> d.getMacAddress()).collect(Collectors.toList()))
-                .contains("00:01", "00:02");
-
-        sendRegisterRequest(url, "00:03", DeviceType.SWITCH, "");
-
-        ResponseEntity<List<DeviceEntryResponse>> secondResponse = restTemplate.exchange(urlListDevice, HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<List<DeviceEntryResponse>>() {
-                });
-
-        Assertions
-                .assertThatIterable(
-                        secondResponse.getBody().stream().map(d -> d.getMacAddress()).collect(Collectors.toList()))
-                .contains("00:01", "00:02", "00:03");
+        assertThatIterable(
+                response.getBody().stream().map(DeviceEntryResponse::macAddress).collect(Collectors.toList()))
+                .contains(macAddresses);
     }
 
     @Test
     void should_Validate_Device_Registration_Parameters() {
-        String url = "http://localhost:" + port + "/api/network/devices/";
-
-        Assertions.assertThat(sendRegisterRequest(url, null, null, "").getStatusCode())
+        assertThat(sendRegisterRequest(baseUrl, null, null, "").getStatusCode())
                 .isEqualTo(HttpStatusCode.valueOf(400));
     }
 
     @Test
     void can_Return_Network_Topology() {
-        String url = "http://localhost:" + port + "/api/network/devices/";
+        setupBranchingNetworkTopology(baseUrl);
 
-        sendRegisterRequest(url, "00:01", DeviceType.SWITCH, "");
-        sendRegisterRequest(url, "00:02", DeviceType.GATEWAY, "00:01");
-        sendRegisterRequest(url, "00:03", DeviceType.GATEWAY, "00:01");
-        sendRegisterRequest(url, "00:04", DeviceType.GATEWAY, "00:01");
-
-        String urlGetDevice = "http://localhost:" + port + "/api/network/devices/topology";
+        String urlGetDevice = baseUrl + "/topology";
 
         DevicesNetworkTopologyResponse response = restTemplate.getForObject(urlGetDevice, DevicesNetworkTopologyResponse.class);
 
-        Assertions.assertThat(response.getConnectedDevices().size()).isEqualTo(1);
-        Assertions.assertThat(response.getConnectedDevices().stream().findFirst().get().getConnectedDevices().size())
+        assertThat(response.getConnectedDevices().size()).isEqualTo(1);
+        assertThat(response.getConnectedDevices().stream().findFirst().get().getConnectedDevices().size())
                 .isEqualTo(3);
 
     }
 
     @Test
     void can_Return_Network_Topology_Starting_From_Internal_Device() {
-        String url = "http://localhost:" + port + "/api/network/devices/";
 
-        sendRegisterRequest(url, "00:01", DeviceType.SWITCH, "");
-        sendRegisterRequest(url, "00:02", DeviceType.GATEWAY, "00:01");
-        sendRegisterRequest(url, "00:03", DeviceType.GATEWAY, "00:01");
-        sendRegisterRequest(url, "00:04", DeviceType.GATEWAY, "00:01");
-        sendRegisterRequest(url, "00:05", DeviceType.GATEWAY, "00:03");
-        sendRegisterRequest(url, "00:06", DeviceType.GATEWAY, "00:03");
+        setupBranchingNetworkTopology(baseUrl);
 
-        String urlGetDevice = "http://localhost:" + port + "/api/network/devices/00:03/topology";
+        String urlGetDevice = baseUrl + "/" + givenMacAddress("03") + "/topology";
 
         DevicesNetworkTopologyResponse response = restTemplate.getForObject(urlGetDevice, DevicesNetworkTopologyResponse.class);
 
-        Assertions.assertThat(response.getConnectedDevices().size())
+        assertThat(response.getConnectedDevices().size())
                 .isEqualTo(2);
 
     }
 
     private ResponseEntity<Void> sendRegisterRequest(String url, String macAddr, DeviceType deviceType,
-            String upLinknMacAddr) {
+                                                     String uplinkMacAddr) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        RegisterDeviceRequest deviceRequest = new RegisterDeviceRequest(macAddr, deviceType, upLinknMacAddr);
+        RegisterDeviceRequest deviceRequest = new RegisterDeviceRequest(macAddr, deviceType, uplinkMacAddr);
 
         HttpEntity<RegisterDeviceRequest> httpEntity = new HttpEntity<>(deviceRequest, headers);
 
         return restTemplate.exchange(url, HttpMethod.POST, httpEntity, Void.class);
+    }
+
+    private void setupBranchingNetworkTopology(String url) {
+        sendRegisterRequest(url, givenMacAddress("01"), DeviceType.SWITCH, "");
+        sendRegisterRequest(url, givenMacAddress("02"), DeviceType.GATEWAY, givenMacAddress("01"));
+        sendRegisterRequest(url, givenMacAddress("03"), DeviceType.GATEWAY, givenMacAddress("01"));
+        sendRegisterRequest(url, givenMacAddress("04"), DeviceType.GATEWAY, givenMacAddress("01"));
+        sendRegisterRequest(url, givenMacAddress("05"), DeviceType.GATEWAY, givenMacAddress("03"));
+        sendRegisterRequest(url, givenMacAddress("06"), DeviceType.GATEWAY, givenMacAddress("03"));
     }
 }

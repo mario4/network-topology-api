@@ -8,9 +8,9 @@ import java.util.stream.Collectors;
 
 public class DevicesNetwork {
 
-    private Set<Device> registeredDevices = new LinkedHashSet<>();
+    private final Set<Device> registeredDevices = new LinkedHashSet<>();
 
-    private Device networkRoot = new Device("root", null, null);
+    private final Device networkRoot = new Device(MacAddress.ROOT_ADDRESS, null, null);
 
     public void registerDevice(Device newDevice) {
         Device device = getRegisteredDevice(newDevice.getMacAddress().value());
@@ -19,7 +19,7 @@ public class DevicesNetwork {
             throw new DevicesNetwork.DuplicateDeviceException();
         }
 
-        if (newDevice.getMacAddress().equals(newDevice.getUplinkMacAddress()))
+        if (newDevice.getMacAddress().equals(newDevice.getUplinkMacAddress().orElse(null)))
             throw new DevicesNetwork.CyclicUplinkReferenceException();
 
         deployDeviceToNetwork(newDevice);
@@ -43,7 +43,7 @@ public class DevicesNetwork {
         if (isUplinkEmpty(device)) {
             networkRoot.getConnectedDevices().add(device);
         } else {
-            Device uplinkDevice = getRegisteredDevice(device.getUplinkMacAddress().value());
+            Device uplinkDevice = getRegisteredDevice(device.getUplinkMacAddress().map(MacAddress::value).orElse(null));
 
             if (uplinkDevice == null) {
                 networkRoot.getConnectedDevices().add(device);
@@ -61,26 +61,26 @@ public class DevicesNetwork {
 
     private boolean createsCyclicReference(Device newDevice, Device uplinkDevice) {
 
-        return newDevice.getMacAddress().equals(uplinkDevice.getUplinkMacAddress());
+        return newDevice.getMacAddress().equals(uplinkDevice.getUplinkMacAddress().orElse(null));
     }
 
     private boolean isUplinkEmpty(Device device) {
-        return device.getUplinkMacAddress().value() == null || device.getUplinkMacAddress().value().isEmpty();
+        return device.getUplinkMacAddress().map(MacAddress::value).isEmpty();
     }
 
     private void resolveOutOfOrderUplinkConnections(Device device) {
         for (Iterator<Device> i = networkRoot.getConnectedDevices().iterator(); i.hasNext();) {
             Device hangingDevice = i.next();
 
-            if (isNoLongerHangingDevice(device.getMacAddress().value(), hangingDevice.getUplinkMacAddress().value())) {
+            if (isNoLongerHangingDevice(device.getMacAddress().value(), hangingDevice.getUplinkMacAddress())) {
                 device.getConnectedDevices().add(hangingDevice);
                 i.remove();
             }
         }
     }
 
-    private boolean isNoLongerHangingDevice(String device, String UplinkMacAddress) {
-        return Optional.ofNullable(UplinkMacAddress).filter(addr -> addr.equals(device)).isPresent();
+    private boolean isNoLongerHangingDevice(String device, Optional<MacAddress> uplinkMacAddress) {
+        return uplinkMacAddress.filter(addr -> addr.value().equals(device)).isPresent();
     }
 
     public static final class CyclicUplinkReferenceException extends RuntimeException {

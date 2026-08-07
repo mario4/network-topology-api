@@ -3,13 +3,8 @@
  */
 package devices;
 
-import devices.adapter.out.InMemoryDevicesNetworkRepository;
-import devices.application.DevicesNetworkQueryUseCase;
-import devices.application.RegisterDeviceUseCase;
-import devices.port.out.DevicesNetworkRepository;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
 public class Application {
