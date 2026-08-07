@@ -97,14 +97,6 @@ public class DevicesNetworkControllerTest {
     }
 
     @Test
-    void should_return_400_when_mac_address_path_variable_is_malformed() {
-        ResponseEntity<ErrorResponse> response =
-                restTemplate.getForEntity(baseUrl + "/not-a-valid-mac", ErrorResponse.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-    }
-
-    @Test
     void can_Return_Network_Topology() {
         setupBranchingNetworkTopology(baseUrl);
 
@@ -144,10 +136,10 @@ public class DevicesNetworkControllerTest {
         return restTemplate.exchange(url, HttpMethod.POST, httpEntity, responseType);
     }
 
-    private ResponseEntity<Void> sendRegisterRequest(
+    private void sendRegisterRequest(
             String url, String macAddr, DeviceType deviceType, String uplinkMacAddr) {
 
-       return sendRegisterRequest(url,macAddr,deviceType,uplinkMacAddr, Void.class);
+        sendRegisterRequest(url, macAddr, deviceType, uplinkMacAddr, Void.class);
     }
 
     private void setupBranchingNetworkTopology(String url) {

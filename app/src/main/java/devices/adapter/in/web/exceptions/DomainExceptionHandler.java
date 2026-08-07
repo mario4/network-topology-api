@@ -70,11 +70,4 @@ public class DomainExceptionHandler {
 
         return new ResponseEntity<>(error, status);
     }
-
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> handleMalformedJson(HttpMessageNotReadableException ex) {
-        return new ResponseEntity<>(
-                new ErrorResponse(400, "Malformed request body", "Request body could not be parsed"),
-                HttpStatus.BAD_REQUEST);
-    }
 }
